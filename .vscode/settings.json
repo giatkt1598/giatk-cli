@@ -1,3 +1,9 @@
 {
-  "cSpell.words": ["giatk", "nodemon"]
+  "cSpell.words": ["appsettings", "giatk", "nodemon"],
+  "editor.codeActionsOnSave": {
+    "source.sortImports": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true
 }

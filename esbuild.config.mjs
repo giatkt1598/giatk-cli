@@ -3,12 +3,12 @@ import pkg from "./package.json" with { type: "json" };
 
 build({
     entryPoints: ["src/index.ts", "src/commands/*"],
-    external: ["./commands/*"],
+    external: ["shelljs"],
     outdir: "dist",
     splitting: false,
     bundle: true,
     platform: "node",
-    format: "esm",
+    format: 'esm',
     target: "node18",
 
     minify: true,
