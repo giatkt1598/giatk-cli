@@ -1,16 +1,15 @@
 #!/usr/bin/env node
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { loadCommands } from "./infrastructures/load-commands.js";
-
+import { loadCommands, parseArgs } from "@/infrastructures/index.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const commands = await loadCommands(join(__dirname, "commands"));
 
-const args = (await import("./infrastructures/parse-args.js")).parseArgs();
+const args = parseArgs();
 console.log("🚀 ~ args:", args);
 
-const Cmd = commands.get("hello");
+const Cmd = commands.get(args.command!);
 if (Cmd) {
   await new Cmd().executeAsync();
 }

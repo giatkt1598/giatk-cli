@@ -1,11 +1,11 @@
 import { build } from "esbuild";
-
+import pkg from "./package.json" with { type: "json" };
 
 build({
     entryPoints: ["src/index.ts", "src/commands/*"],
     external: ["./commands/*"],
     outdir: "dist",
-    splitting: true,
+    splitting: false,
     bundle: true,
     platform: "node",
     format: "esm",
@@ -15,5 +15,8 @@ build({
     sourcemap: false,
     treeShaking: true,
 
-    logLevel: "info"
+    logLevel: "info",
+    define: {
+        __APP_VERSION__: JSON.stringify(pkg.version),
+    }
 }).catch(() => process.exit(1));

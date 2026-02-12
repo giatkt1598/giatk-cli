@@ -1,6 +1,6 @@
 {
   "name": "giatk-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.ts",
   "type": "module",
   "bin": {
@@ -8,6 +8,7 @@
   },
   "scripts": {
     "cli:install": "npm install -g .",
+    "cli:uninstall": "npm unlink -g giatk-cli",
     "clean": "rimraf dist",
     "build": "npm --silent run clean && node esbuild.config.mjs",
     "build:watch": "nodemon",
@@ -21,6 +22,7 @@
   "description": "",
   "devDependencies": {
     "@types/node": "^25.2.0",
+    "@types/shelljs": "^0.10.0",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
     "esbuild": "^0.27.2",
@@ -31,5 +33,9 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.19",
+    "shelljs": "^0.10.0"
   }
 }
