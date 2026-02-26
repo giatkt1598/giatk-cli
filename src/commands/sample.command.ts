@@ -18,7 +18,7 @@ class SampleCommandOptions {
 
   @Description("Number of greeting lines to print.")
   @IsInt()
-  @Min(1)
+  @Min(-10)
   @Max(10)
   @Type(() => Number)
   times!: number;

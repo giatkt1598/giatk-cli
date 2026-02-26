@@ -19,7 +19,8 @@ export abstract class BaseCommand<TArgs extends object = Record<string, unknown>
 
   //#region Transform args and validate
   private transformArgs(argsType?: ClassType<TArgs>) {
-    const { options } = parseArgs(process.argv.slice(2));
+    const parsedArgs = parseArgs();
+    const { options } = parsedArgs;
     if (!argsType) {
       return options as TArgs;
     }

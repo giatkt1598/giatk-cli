@@ -1,26 +1,44 @@
 #!/usr/bin/env node
+import type { BaseCommand } from "@/commands/base/index.js";
 import { loadCommands, parseArgs, renderCommandHelp, renderHelp } from "@/infrastructures/index.js";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime.js";
+import { camelCase } from "lodash";
 import { dirname, join } from "path";
 import "reflect-metadata";
 import { fileURLToPath } from "url";
 import { displayCliVersion } from "./infrastructures/get-cli-version.js";
-dayjs.extend(relativeTime);
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+function findOptionCommand(commands: Map<string, new () => BaseCommand>, options: Record<string, string | boolean>) {
+  for (const commandName of commands.keys()) {
+    if (!commandName.startsWith("--")) continue;
+    const key = camelCase(commandName.slice(2));
+    if (options[key] === true) {
+      return commandName;
+    }
+  }
+  return undefined;
+}
 
 async function main() {
   const commands = await loadCommands(join(__dirname, "commands"));
 
   const args = parseArgs();
+  const optionCommandName = findOptionCommand(commands, args.options);
 
-  if (args.options.version === true || args.positionals[0] === "-v") {
+  if (!args.command && (args.options.version === true || args.options.v === true)) {
     displayCliVersion();
     return;
   }
 
   if (args.options.help === true) {
     if (!args.command) {
+      if (optionCommandName) {
+        const optionCmd = commands.get(optionCommandName);
+        if (optionCmd) {
+          renderCommandHelp(optionCommandName, optionCmd);
+          return;
+        }
+      }
       renderHelp(commands);
       return;
     }
@@ -39,6 +57,14 @@ async function main() {
   if (Cmd) {
     await new Cmd().executeAsync();
     return;
+  }
+
+  if (!args.command && optionCommandName) {
+    const optionCmd = commands.get(optionCommandName);
+    if (optionCmd) {
+      await new optionCmd().executeAsync();
+      return;
+    }
   }
 
   renderHelp(commands);

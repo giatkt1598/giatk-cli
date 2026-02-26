@@ -6,7 +6,12 @@ export interface ParsedArgs {
   positionals: string[];
 }
 
-export function parseArgs(argv = process.argv.slice(2)): ParsedArgs {
+function isNegativeNumberToken(value: string | undefined) {
+  return typeof value === "string" && /^-\d+(\.\d+)?$/.test(value);
+}
+
+export function parseArgs(): ParsedArgs {
+  const argv = process.argv.slice(2);
   let command: string | undefined;
   const options: Record<string, string | boolean> = {};
   const positionals: string[] = [];
@@ -25,9 +30,15 @@ export function parseArgs(argv = process.argv.slice(2)): ParsedArgs {
 
     // --key value | --key="value"
     if (arg?.startsWith("--")) {
-      const [key, inlineValue] = arg.slice(2).split("=");
+      const raw = arg.slice(2);
+      const separatorIndex = raw.indexOf("=");
+      const key = separatorIndex >= 0 ? raw.slice(0, separatorIndex) : raw;
+      const inlineValue = separatorIndex >= 0 ? raw.slice(separatorIndex + 1) : undefined;
 
-      if (!key) continue;
+      if (!key) {
+        i++;
+        continue;
+      }
       const normalizedKey = camelCase(key);
 
       if (inlineValue !== undefined) {
@@ -37,8 +48,46 @@ export function parseArgs(argv = process.argv.slice(2)): ParsedArgs {
       }
 
       const next = argv[i + 1];
-      if (!next || next.startsWith("-")) {
+      if (!next || (next.startsWith("-") && !isNegativeNumberToken(next))) {
         options[normalizedKey] = true; // flag
+        i++;
+      } else {
+        options[normalizedKey] = next;
+        i += 2;
+      }
+      continue;
+    }
+
+    // -k value | -k | -abc
+    if (arg?.startsWith("-") && arg.length > 1) {
+      const raw = arg.slice(1);
+      const separatorIndex = raw.indexOf("=");
+      const keyPart = separatorIndex >= 0 ? raw.slice(0, separatorIndex) : raw;
+      const inlineValue = separatorIndex >= 0 ? raw.slice(separatorIndex + 1) : undefined;
+
+      if (keyPart.length > 1 && inlineValue === undefined) {
+        for (const key of keyPart) {
+          options[camelCase(key)] = true;
+        }
+        i++;
+        continue;
+      }
+
+      const normalizedKey = camelCase(keyPart);
+      if (!normalizedKey) {
+        i++;
+        continue;
+      }
+
+      if (inlineValue !== undefined) {
+        options[normalizedKey] = inlineValue;
+        i++;
+        continue;
+      }
+
+      const next = argv[i + 1];
+      if (!next || (next.startsWith("-") && !isNegativeNumberToken(next))) {
+        options[normalizedKey] = true;
         i++;
       } else {
         options[normalizedKey] = next;

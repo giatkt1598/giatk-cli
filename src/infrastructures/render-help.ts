@@ -128,6 +128,7 @@ export function renderCommandHelp(commandName: string, commandCtor: new () => Ba
       const defaultValue = defaultValues[arg];
       const baseDescription = argumentDescriptions[arg] ?? "";
       let description = baseDescription;
+      const hasDefaultValue = defaultValue !== undefined;
       if (defaultValue !== undefined) {
         const defaultLabel = typeof defaultValue === "object" ? JSON.stringify(defaultValue) : String(defaultValue);
         description = baseDescription ? `${baseDescription} (default: ${defaultLabel})` : `Default value: ${defaultLabel}`;
@@ -135,7 +136,8 @@ export function renderCommandHelp(commandName: string, commandCtor: new () => Ba
       if (isEnum && enumChoices.length > 0) {
         description = description ? `${description}\nValues: ${enumChoices.join(", ")}` : `Values: ${enumChoices.join(", ")}`;
       }
-      const argumentName = `--${arg}${isOptional ? "" : "*"}`;
+      const isRequired = !isOptional && !hasDefaultValue;
+      const argumentName = `--${arg}${isRequired ? "*" : ""}`;
       return [argumentName, typeLabel, description] as const;
     });
 
