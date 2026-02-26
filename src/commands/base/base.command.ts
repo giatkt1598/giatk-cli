@@ -7,7 +7,6 @@ export const COMMAND_ARGS_TYPE_META = "__command_args_type_meta__";
 
 export abstract class BaseCommand<TArgs extends object = Record<string, unknown>> {
   args!: TArgs;
-
   constructor(argsType?: ClassType<TArgs>) {
     this.args = this.transformArgs(argsType);
 
@@ -18,6 +17,7 @@ export abstract class BaseCommand<TArgs extends object = Record<string, unknown>
 
   abstract executeAsync(args?: TArgs): Promise<void>;
 
+  //#region Transform args and validate
   private transformArgs(argsType?: ClassType<TArgs>) {
     const { options } = parseArgs(process.argv.slice(2));
     if (!argsType) {
@@ -86,6 +86,7 @@ export abstract class BaseCommand<TArgs extends object = Record<string, unknown>
 
     return messages.join("\n");
   }
+  //#endregion
 }
 
 export function CommandOf<TArgs extends object>(argsType: ClassType<TArgs>) {

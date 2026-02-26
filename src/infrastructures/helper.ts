@@ -13,4 +13,8 @@ export class Helper {
     }
     return dir;
   }
+
+  static async sleepAsync(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
 }

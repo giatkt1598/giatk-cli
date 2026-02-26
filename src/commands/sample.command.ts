@@ -1,4 +1,6 @@
 import { Description, IsDayjs } from "@/decorators/index.js";
+import { Helper } from "@/infrastructures/helper.js";
+import { LoggerService } from "@/infrastructures/logger.service.js";
 import { Type } from "class-transformer";
 import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Length, Max, Min } from "class-validator";
 import type dayjs from "dayjs";
@@ -46,15 +48,24 @@ class SampleCommandOptions {
 
 @Command("sample", {
   description: "This is a sample command to demonstrate the command structure and argument parsing.",
-  example: "sample --name Alice --dry-run --times 24 --date 2025-01-23",
+  example: 'sample --name Alice --dry-run --times 10 --date 2025-01-23 --select "Type 1"',
 })
 export class SampleCommand extends CommandOf(SampleCommandOptions) {
   async executeAsync(): Promise<void> {
-    console.log("🚀 ~ SampleCommand ~ executeAsync ~ this.args:", JSON.stringify(this.args, null, 2));
-    const suffix = this.args.dryRun ? " (dry-run)" : "";
+    const logger = new LoggerService({ logToConsole: false });
 
-    for (let i = 0; i < this.args.times; i++) {
-      console.log(`Hello ${this.args.name} [mode=${this.args.mode}]${suffix}`);
-    }
+    console.log("🚀 ~ SampleCommand ~ executeAsync ~ this.args:\n", JSON.stringify(this.args, null, 2));
+
+    logger.info("Sample logger.info");
+    logger.warn("Sample logger.warn");
+    logger.error("Sample logger.error");
+    logger.log("Sample logger.log");
+
+    console.log("Sleep for 1 seconds...");
+    await Helper.sleepAsync(1000);
+    logger.done();
+    console.log(logger.toString());
+    console.log("Awake now!");
+    console.log(`Command executed in ${logger.timeEnd()}`);
   }
 }
