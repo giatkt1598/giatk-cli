@@ -1,14 +1,23 @@
 #!/usr/bin/env node
-import "reflect-metadata";
 import { loadCommands, parseArgs, renderCommandHelp, renderHelp } from "@/infrastructures/index.js";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime.js";
 import { dirname, join } from "path";
+import "reflect-metadata";
 import { fileURLToPath } from "url";
+import { displayCliVersion } from "./infrastructures/get-cli-version.js";
+dayjs.extend(relativeTime);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 async function main() {
   const commands = await loadCommands(join(__dirname, "commands"));
 
   const args = parseArgs();
+
+  if (args.options.version === true || args.positionals[0] === "-v") {
+    displayCliVersion();
+    return;
+  }
 
   if (args.options.help === true) {
     if (!args.command) {
