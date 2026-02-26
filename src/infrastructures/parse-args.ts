@@ -1,3 +1,5 @@
+import { camelCase } from "lodash";
+
 export interface ParsedArgs {
   command: string | undefined;
   options: Record<string, string | boolean>;
@@ -26,19 +28,20 @@ export function parseArgs(argv = process.argv.slice(2)): ParsedArgs {
       const [key, inlineValue] = arg.slice(2).split("=");
 
       if (!key) continue;
+      const normalizedKey = camelCase(key);
 
       if (inlineValue !== undefined) {
-        options[key] = inlineValue;
+        options[normalizedKey] = inlineValue;
         i++;
         continue;
       }
 
       const next = argv[i + 1];
       if (!next || next.startsWith("-")) {
-        options[key] = true; // flag
+        options[normalizedKey] = true; // flag
         i++;
       } else {
-        options[key] = next;
+        options[normalizedKey] = next;
         i += 2;
       }
       continue;

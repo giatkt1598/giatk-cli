@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import "reflect-metadata";
 import { loadCommands, parseArgs } from "@/infrastructures/index.js";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
@@ -16,4 +17,8 @@ async function main() {
   }
 }
 
-main();
+main().catch((error) => {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(message);
+  process.exitCode = 1;
+});
