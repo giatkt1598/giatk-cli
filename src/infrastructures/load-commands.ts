@@ -1,7 +1,7 @@
 import { readdir } from "fs/promises";
 import { join } from "path";
 import { pathToFileURL } from "url";
-import { BaseCommand, COMMAND_META } from "../commands/base/index.js";
+import { BaseCommand, COMMAND_META, type CommandMetadata } from "../commands/base/index.js";
 
 export async function loadCommands(dir: string) {
   const files = await readdir(dir);
@@ -17,7 +17,8 @@ export async function loadCommands(dir: string) {
     for (const exported of Object.values(mod)) {
       if (typeof exported !== "function") continue;
 
-      const commandName = (exported as any)[COMMAND_META];
+      const metadata = (exported as any)[COMMAND_META] as string | CommandMetadata | undefined;
+      const commandName = typeof metadata === "string" ? metadata : metadata?.name;
       if (!commandName) continue;
 
       commands.set(commandName, exported as new () => BaseCommand);

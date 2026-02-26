@@ -3,6 +3,7 @@ import { plainToInstance } from "class-transformer";
 import { getMetadataStorage, validateSync, type ValidationError } from "class-validator";
 
 type ClassType<T extends object> = new () => T;
+export const COMMAND_ARGS_TYPE_META = "__command_args_type_meta__";
 
 export abstract class BaseCommand<TArgs extends object = Record<string, unknown>> {
   args!: TArgs;
@@ -93,6 +94,11 @@ export function CommandOf<TArgs extends object>(argsType: ClassType<TArgs>) {
       super(argsType);
     }
   }
+
+  Reflect.defineProperty(TypedCommand, COMMAND_ARGS_TYPE_META, {
+    value: argsType,
+    writable: false,
+  });
 
   return TypedCommand;
 }

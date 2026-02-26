@@ -7,7 +7,9 @@ dayjs.extend(relativeTime);
 
 declare const __APP_VERSION__: string;
 
-@Command("version")
+@Command("version", {
+  description: "Show CLI version and last commit time.",
+})
 export class VersionCommand extends BaseCommand {
   async executeAsync() {
     //Get last update time of current branch
