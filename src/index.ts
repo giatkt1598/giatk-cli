@@ -25,14 +25,14 @@ let newVersionAlert: string | undefined;
 let checkForUpdateTimer: NodeJS.Timeout | undefined;
 async function main() {
   const args = parseArgs();
-  checkForUpdateTimer = setTimeout(async () => {
+  checkForUpdateTimer = setTimeout(() => {
     appSettings.CheckForUpdate &&
       !args.options.upgrade &&
-      (await new CliService().checkForUpdate().then((result) => {
+      new CliService().checkForUpdate().then((result) => {
         if (result.hasUpdate) {
           newVersionAlert = `A new CLI version ${result.latestVersion} is available. Run "giatk --upgrade" to update.`;
         }
-      }));
+      });
   });
 
   checkForUpdateTimer.unref();

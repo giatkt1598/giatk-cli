@@ -33,7 +33,7 @@ export class CliService {
       await exec(`git pull origin ${appConsts.CLI_MAIN_BRANCH}`);
       await exec(`npm run build`);
 
-      console.log(chalk.green(`CLI is already up to date.`));
+      console.log(chalk.green(`CLI is upgraded successfully.`));
     }
   }
 
