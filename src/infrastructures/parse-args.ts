@@ -1,4 +1,4 @@
-import { camelCase } from "lodash";
+import * as _ from "lodash";
 
 export interface ParsedArgs {
   command: string | undefined;
@@ -39,7 +39,7 @@ export function parseArgs(): ParsedArgs {
         i++;
         continue;
       }
-      const normalizedKey = camelCase(key);
+      const normalizedKey = _.camelCase(key);
 
       if (inlineValue !== undefined) {
         options[normalizedKey] = inlineValue;
@@ -67,13 +67,13 @@ export function parseArgs(): ParsedArgs {
 
       if (keyPart.length > 1 && inlineValue === undefined) {
         for (const key of keyPart) {
-          options[camelCase(key)] = true;
+          options[_.camelCase(key)] = true;
         }
         i++;
         continue;
       }
 
-      const normalizedKey = camelCase(keyPart);
+      const normalizedKey = _.camelCase(keyPart);
       if (!normalizedKey) {
         i++;
         continue;

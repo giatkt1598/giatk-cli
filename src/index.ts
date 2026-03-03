@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import type { BaseCommand } from "@/commands/base/index.js";
 import { loadCommands, parseArgs, renderCommandHelp, renderHelp } from "@/infrastructures/index.js";
-import { camelCase } from "lodash";
+import * as _ from "lodash";
 import { dirname, join } from "path";
 import "reflect-metadata";
 import { fileURLToPath } from "url";
@@ -11,7 +11,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 function findOptionCommand(commands: Map<string, new () => BaseCommand>, options: Record<string, string | boolean>) {
   for (const commandName of commands.keys()) {
     if (!commandName.startsWith("--")) continue;
-    const key = camelCase(commandName.slice(2));
+    const key = _.camelCase(commandName.slice(2));
     if (options[key] === true) {
       return commandName;
     }
