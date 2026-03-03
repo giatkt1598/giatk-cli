@@ -1,38 +1,20 @@
 //Write function load config from appsettings.json like as .net core, can override appsetting.json base on environment variable, for example: appsettings.Development.json, appsettings.Production.json, etc.
-import * as fs from "fs";
 import * as path from "path";
-import { Helper } from "./helper.js";
+import { Helper } from "../utilities/helper.js";
 
 interface AppSettings {
-  [key: string]: any;
+  // [key: string]: any;
+  CheckForUpdate?: boolean;
 }
 
-function readJsonFile(filePath: string): any {
-  if (!fs.existsSync(filePath)) {
-    return null;
-  }
-
-  const content = fs.readFileSync(filePath, "utf-8");
-  try {
-    return JSON.parse(content);
-  } catch (e) {
-    throw new Error(`Failed to parse JSON from ${filePath}: ${e}`);
-  }
-}
-
-export function getSettings(): AppSettings {
+async function getSettings(): Promise<AppSettings> {
   const projectRoot = Helper.getProjectRoot();
   const basePath = path.join(projectRoot, "appsettings.json");
-  const env = process.env.NODE_ENV || "production";
-  const envFileName = `appsettings.${env}.json`;
-  const envPath = path.join(projectRoot, envFileName);
 
-  const baseSettings = readJsonFile(basePath);
+  const baseSettings = await Helper.readFileAs<AppSettings>(basePath);
   if (!baseSettings) {
     throw new Error("appsettings.json file not found");
   }
-
-  const envSettings = readJsonFile(envPath);
 
   // deep merge environment settings into base settings
   function merge(target: any, source: any): any {
@@ -49,9 +31,15 @@ export function getSettings(): AppSettings {
     return target;
   }
 
-  if (envSettings) {
-    merge(baseSettings, envSettings);
+  const env = process.env.NODE_ENV || "production";
+  const envFileName = `appsettings.${env}.json`;
+  const envPath = path.join(projectRoot, envFileName);
+  if (await Helper.fileExists(envPath)) {
+    const envSettings = await Helper.readFileAs<AppSettings>(envPath);
+    envSettings && merge(baseSettings, envSettings);
   }
 
   return baseSettings;
 }
+
+export const appSettings = await getSettings();

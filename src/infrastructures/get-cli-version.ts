@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime.js";
 import shell from "shelljs";
-import { Helper } from "./helper.js";
+import { Helper } from "../utilities/helper.js";
 import { CLI } from "./constants.js";
 
 dayjs.extend(relativeTime);
