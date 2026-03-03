@@ -70,6 +70,9 @@ async function main() {
   } else if (args.options.upgrade === true) {
     await new CliService().upgradeCli();
     return;
+  } else if (args.options.config === true) {
+    await new CliService().openFileConfig();
+    return;
   }
 
   const Cmd = commands.get(args.command!);

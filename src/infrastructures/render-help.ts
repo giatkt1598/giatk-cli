@@ -51,6 +51,7 @@ export function renderHelp(commands: Map<string, new () => BaseCommand>) {
   optionTable.push(["--help", `Show help for ${CLI.BIN_NAME}`]);
   optionTable.push(["--version, -v", `Print version information and quit`]);
   optionTable.push(["--upgrade", `Upgrade ${CLI.BIN_NAME} to the latest version`]);
+  optionTable.push(["--config", `Open configuration file for ${CLI.BIN_NAME}`]);
 
   console.log(CLI.DISPLAY_NAME);
   console.log("");

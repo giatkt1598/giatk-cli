@@ -2,6 +2,7 @@ import { appConsts } from "@/constants/constants.js";
 import { Helper } from "@/utilities/helper.js";
 import { useCommand } from "@/utilities/use-command.js";
 import chalk from "chalk";
+import path from "path";
 
 declare const __APP_VERSION__: string;
 
@@ -39,5 +40,18 @@ export class CliService {
   async checkForUpdate() {
     const [currentVersion, latestVersion] = await Promise.all([this.getCurrentVersion(), this.getLatestVersion()]);
     return currentVersion !== latestVersion ? { hasUpdate: true, latestVersion } : { hasUpdate: false };
+  }
+
+  async openFileConfig() {
+    const projectRoot = Helper.getProjectRoot();
+    const configPath = path.join(projectRoot, "appsettings.production.json");
+    const isExists = await Helper.fileExists(configPath);
+    if (!isExists) {
+      const fs = await import("fs/promises");
+      await fs.copyFile(path.join(projectRoot, "appsettings.json"), configPath);
+    }
+
+    const { exec } = useCommand({ cwd: projectRoot, silent: false });
+    await exec(`"${process.platform === "win32" ? "notepad" : process.platform === "darwin" ? "open" : "xdg-open"}" "${configPath}"`);
   }
 }
