@@ -48,10 +48,10 @@ export function renderHelp(commands: Map<string, new () => BaseCommand>) {
   items.forEach((item) => commandTable.push([item.name, item.description]));
 
   const optionTable = createBorderlessTable([cmdColWidth, descColWidth]);
-  optionTable.push(["--help", `Show help for ${CLI.BIN_NAME}`]);
+  optionTable.push(["--help", `Show help`]);
   optionTable.push(["--version, -v", `Print version information and quit`]);
-  optionTable.push(["--upgrade", `Upgrade ${CLI.BIN_NAME} to the latest version`]);
-  optionTable.push(["--config", `Open configuration file for ${CLI.BIN_NAME}`]);
+  optionTable.push(["--upgrade", `Upgrade CLI to the latest version`]);
+  optionTable.push(["--config", `Open CLI configuration file`]);
 
   console.log(CLI.DISPLAY_NAME);
   console.log("");
