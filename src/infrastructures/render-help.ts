@@ -1,8 +1,10 @@
 import { COMMAND_ARGS_TYPE_META, COMMAND_META, type BaseCommand, type CommandMetadata } from "@/commands/base/index.js";
+import { appConsts } from "@/constants/constants.js";
 import { getArgumentDescriptions } from "@/decorators/index.js";
 import { getMetadataStorage } from "class-validator";
 import Table from "cli-table3";
-import { CLI } from "./constants.js";
+
+const { CLI } = appConsts;
 
 function createBorderlessTable(colWidths: number[]) {
   return new Table({

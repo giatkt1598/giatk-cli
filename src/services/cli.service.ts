@@ -2,6 +2,7 @@ import { appConsts } from "@/constants/constants.js";
 import { Helper } from "@/utilities/helper.js";
 import { useCommand } from "@/utilities/use-command.js";
 import chalk from "chalk";
+import dayjs from "dayjs";
 import path from "path";
 
 declare const __APP_VERSION__: string;
@@ -53,5 +54,25 @@ export class CliService {
 
     const { exec } = useCommand({ cwd: projectRoot, silent: false });
     await exec(`"${process.platform === "win32" ? "notepad" : process.platform === "darwin" ? "open" : "xdg-open"}" "${configPath}"`);
+  }
+
+  async showVersion() {
+    const version = await this.getCurrentVersion();
+    const { exec } = useCommand({ cwd: Helper.getProjectRoot(), silent: true });
+    const modifiedRaw = await exec("git log -1 --format=%ci");
+    const commitHash = await exec("git rev-parse --short HEAD");
+
+    const lastModified = modifiedRaw ? dayjs(modifiedRaw) : null;
+    const relativeTime = lastModified?.isValid() ? lastModified.fromNow() : null;
+
+    const segments = [`${appConsts.CLI.DISPLAY_NAME} version ${version}`];
+    if (commitHash) {
+      segments.push(`build ${commitHash}`);
+    }
+    if (relativeTime) {
+      segments.push(`(${relativeTime})`);
+    }
+
+    console.log(segments.join(", ").replace(", (", " ("));
   }
 }

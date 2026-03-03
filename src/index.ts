@@ -2,12 +2,15 @@
 import type { BaseCommand } from "@/commands/base/index.js";
 import { appSettings, loadCommands, parseArgs, renderCommandHelp, renderHelp } from "@/infrastructures/index.js";
 import chalk from "chalk";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime.js";
 import _ from "lodash";
 import { dirname, join } from "path";
 import "reflect-metadata";
 import { fileURLToPath } from "url";
-import { displayCliVersion } from "./infrastructures/get-cli-version.js";
 import { CliService } from "./services/cli.service.js";
+dayjs.extend(relativeTime);
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 function findOptionCommand(commands: Map<string, new () => BaseCommand>, options: Record<string, string | boolean>) {
@@ -42,7 +45,7 @@ async function main() {
   const optionCommandName = findOptionCommand(commands, args.options);
 
   if (!args.command && (args.options.version === true || args.options.v === true)) {
-    displayCliVersion();
+    await new CliService().showVersion();
     return;
   }
 
