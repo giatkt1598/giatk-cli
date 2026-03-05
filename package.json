@@ -14,7 +14,9 @@
     "build:watch": "nodemon",
     "dev": "tsx watch src/index.ts",
     "dev:example": "npm run dev hello --name \"hello world\" --flag",
-    "serve": "node dist/index.js"
+    "serve": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [],
   "author": "",
@@ -38,7 +40,8 @@
     "rimraf": "^6.1.3",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   },
   "dependencies": {
     "@supercharge/promise-pool": "^3.3.0",
