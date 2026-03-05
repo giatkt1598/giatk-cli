@@ -30,6 +30,11 @@ export class Helper {
     return JSON.parse(content) as T;
   }
 
+  static async writeFile(filePath: string, content: string) {
+    const fs = await import("fs/promises");
+    await fs.writeFile(filePath, content, "utf-8");
+  }
+
   static async fileExists(filePath: string) {
     const fs = await import("fs/promises");
     try {

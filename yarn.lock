@@ -254,6 +254,11 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@supercharge/promise-pool@^3.3.0":
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/@supercharge/promise-pool/-/promise-pool-3.3.0.tgz#81c3c890f3aaac3727d466831d985e6e9811c441"
+  integrity sha512-qGzCltMN05ohRRQAXB8TPWt+0Coz9Va266gr9nYN1qc/f/EIaup3VRg7b59mtRaeKTRcxreF20l/udCM/gOqNg==
+
 "@tsconfig/node10@^1.0.7":
   version "1.0.12"
   resolved "https://registry.npmjs.org/@tsconfig/node10/-/node10-1.0.12.tgz"

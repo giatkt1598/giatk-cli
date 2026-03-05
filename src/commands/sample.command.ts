@@ -1,6 +1,7 @@
 import { Description, IsDayjs, IsMultiSelect, IsSingleSelect } from "@/decorators/index.js";
 import { LoggerService } from "@/services/index.js";
 import { Helper } from "@/utilities/helper.js";
+import { PromisePool } from "@supercharge/promise-pool";
 import chalk from "chalk";
 import { Type } from "class-transformer";
 import { IsBoolean, IsInt, IsOptional, IsString, Length, Max, Min } from "class-validator";
@@ -55,12 +56,22 @@ export class SampleCommand extends CommandOf(SampleCommandOptions) {
   async executeAsync(): Promise<void> {
     const logger = new LoggerService({ logToConsole: false });
 
-    console.log("🚀 ~ SampleCommand ~ executeAsync ~ this.args:\n", JSON.stringify(this.args, null, 2));
+    console.log("Parameters:\n", JSON.stringify(this.args, null, 2));
 
     logger.info("Sample logger.info");
     logger.warn("Sample logger.warn");
     logger.error("Sample logger.error");
     logger.log("Sample logger.log");
+
+    console.log("PromisePool started");
+    await PromisePool.for([1, 2, 3, 4, 5])
+      .withConcurrency(2)
+      .process(async (num) => {
+        console.log(`Processing number ${num}...`);
+        await Helper.sleepAsync(500);
+        console.log(`Finished processing number ${num}.`);
+      });
+    console.log("PromisePool ended");
 
     console.log("Sleep for 1 seconds...");
     await Helper.sleepAsync(1000);
