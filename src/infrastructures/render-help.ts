@@ -102,7 +102,8 @@ export function renderCommandHelp(commandName: string, commandCtor: new () => Ba
     if (names.has("isBoolean")) return "boolean";
     if (names.has("isInt")) return "number";
     if (names.has("isString")) return "string";
-    if (names.has("isIn")) return "enum";
+    if (names.has("isMultiSelect")) return "multi-select";
+    if (names.has("isIn")) return "single-select";
 
     if (!argsType) return "unknown";
     const reflected = Reflect.getMetadata("design:type", argsType.prototype, property) as Function | undefined;

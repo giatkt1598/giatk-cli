@@ -1,8 +1,9 @@
-import { Description, IsDayjs } from "@/decorators/index.js";
+import { Description, IsDayjs, IsMultiSelect, IsSingleSelect } from "@/decorators/index.js";
 import { LoggerService } from "@/services/index.js";
 import { Helper } from "@/utilities/helper.js";
+import chalk from "chalk";
 import { Type } from "class-transformer";
-import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Length, Max, Min } from "class-validator";
+import { IsBoolean, IsInt, IsOptional, IsString, Length, Max, Min } from "class-validator";
 import type dayjs from "dayjs";
 import { CommandOf } from "./base/base.command.js";
 import { Command } from "./base/command.decorator.js";
@@ -23,15 +24,15 @@ class SampleCommandOptions {
   @Type(() => Number)
   times!: number;
 
-  @Description("Execution mode.")
+  @Description(`Select one value from list.\nValues: ${SAMPLE_COMMAND_TYPES.map((val) => chalk.yellow(val)).join(", ")}`)
   @IsOptional()
-  @IsIn(["quick", "safe"])
-  mode: "quick" | "safe" = "quick";
+  @IsSingleSelect(SAMPLE_COMMAND_TYPES)
+  selectOne?: SampleCommandType = "Type 1";
 
-  @Description("Select one value from predefined types.")
+  @Description(`Select multiple values, separate values with commas.\nValues: ${SAMPLE_COMMAND_TYPES.join(", ")}`)
   @IsOptional()
-  @IsIn(SAMPLE_COMMAND_TYPES)
-  select?: SampleCommandType;
+  @IsMultiSelect(SAMPLE_COMMAND_TYPES)
+  selectMany?: SampleCommandType[];
 
   @Description("Run command without side effects.")
   @IsOptional()
@@ -48,7 +49,7 @@ class SampleCommandOptions {
 
 @Command("sample", {
   description: "This is a sample command to demonstrate the command structure and argument parsing.",
-  example: 'sample --name Alice --dry-run --times 10 --date 2025-01-23 --select "Type 1"',
+  example: 'sample --name Alice --dry-run --times 10 --date 2025-01-23 --selectOne "Type 1" --selectMany "Type 1, Type 3"',
 })
 export class SampleCommand extends CommandOf(SampleCommandOptions) {
   async executeAsync(): Promise<void> {
