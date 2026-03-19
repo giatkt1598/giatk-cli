@@ -37,17 +37,51 @@ export abstract class BaseCommand<TArgs extends object = Record<string, unknown>
         .filter((metadata) => metadata.name === "isBoolean")
         .map((metadata) => metadata.propertyName),
     );
+    const numberFields = new Set(
+      getMetadataStorage()
+        .getTargetValidationMetadatas(argsType, "", false, false)
+        .filter((metadata) => metadata.name && ["isInt", "isNumber"].includes(metadata.name))
+        .map((metadata) => metadata.propertyName),
+    );
+    const dateFields = new Set(
+      getMetadataStorage()
+        .getTargetValidationMetadatas(argsType, "", false, false)
+        .filter((metadata) => metadata.name === "isDate")
+        .map((metadata) => metadata.propertyName),
+    );
 
     for (const key in instance) {
       const value = instance[key];
-      if (!booleanFields.has(key) || typeof value !== "string") {
+      if (typeof value !== "string") {
         continue;
       }
 
-      if (value.toLowerCase() === "true") {
-        Object.assign(instance, { [key]: true });
-      } else if (value.toLowerCase() === "false") {
-        Object.assign(instance, { [key]: false });
+      if (booleanFields.has(key)) {
+        if (value.toLowerCase() === "true") {
+          Object.assign(instance, { [key]: true });
+        } else if (value.toLowerCase() === "false") {
+          Object.assign(instance, { [key]: false });
+        }
+        continue;
+      }
+
+      if (numberFields.has(key)) {
+        const normalizedValue = value.trim();
+        if (!normalizedValue) {
+          continue;
+        }
+
+        Object.assign(instance, { [key]: Number(normalizedValue) });
+        continue;
+      }
+
+      if (dateFields.has(key)) {
+        const normalizedValue = value.trim();
+        if (!normalizedValue) {
+          continue;
+        }
+
+        Object.assign(instance, { [key]: new Date(normalizedValue) });
       }
     }
 

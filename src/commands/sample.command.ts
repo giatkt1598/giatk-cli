@@ -2,7 +2,6 @@ import { Description, IsDayjs, IsMultiSelect, IsSingleSelect } from "@/decorator
 import { LoggerService } from "@/services/index.js";
 import { Helper } from "@/utilities/helper.js";
 import { PromisePool } from "@supercharge/promise-pool";
-import { Type } from "class-transformer";
 import { IsBoolean, IsInt, IsOptional, IsString, Length, Max, Min } from "class-validator";
 import type dayjs from "dayjs";
 import { CommandOf } from "./base/base.command.js";
@@ -21,7 +20,6 @@ class SampleCommandOptions {
   @IsInt()
   @Min(-10)
   @Max(10)
-  @Type(() => Number)
   times!: number;
 
   @Description(`Select one value from list.`)
