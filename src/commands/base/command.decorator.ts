@@ -3,6 +3,7 @@ export const COMMAND_META = "__command_meta__";
 export interface CommandOptions {
   description?: string;
   example?: string;
+  shortcut?: string;
 }
 
 export interface CommandMetadata {

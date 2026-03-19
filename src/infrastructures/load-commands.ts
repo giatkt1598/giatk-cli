@@ -8,6 +8,15 @@ export async function loadCommands(dir: string) {
 
   const commands = new Map<string, new () => BaseCommand>();
 
+  const registerCommand = (key: string, command: new () => BaseCommand) => {
+    const existing = commands.get(key);
+    if (existing && existing !== command) {
+      throw new Error(`Duplicate command registration for "${key}".`);
+    }
+
+    commands.set(key, command);
+  };
+
   for (const file of files) {
     if (!file.endsWith(".ts") && !file.endsWith(".js")) continue;
 
@@ -21,7 +30,15 @@ export async function loadCommands(dir: string) {
       const commandName = typeof metadata === "string" ? metadata : metadata?.name;
       if (!commandName) continue;
 
-      commands.set(commandName, exported as new () => BaseCommand);
+      const command = exported as new () => BaseCommand;
+      registerCommand(commandName, command);
+
+      const shortcut = typeof metadata === "string" ? undefined : metadata?.options?.shortcut?.trim();
+      if (!shortcut || shortcut === commandName) {
+        continue;
+      }
+
+      registerCommand(shortcut, command);
     }
   }
 

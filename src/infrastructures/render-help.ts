@@ -5,6 +5,11 @@ import { getMetadataStorage } from "class-validator";
 import Table from "cli-table3";
 
 const { CLI } = appConsts;
+type HelpCommandItem = {
+  name: string;
+  shortcut: string | undefined;
+  description: string;
+};
 
 function createBorderlessTable(colWidths: number[]) {
   return new Table({
@@ -36,18 +41,34 @@ export function renderHelp(commands: Map<string, new () => BaseCommand>) {
   const cmdColWidth = 18;
   const descColWidth = Math.max(40, termWidth - cmdColWidth - 6);
 
-  const items = [...commands.entries()]
-    .map(([name, Ctor]) => {
-      const metadata = (Ctor as any)[COMMAND_META] as string | CommandMetadata | undefined;
-      const options = typeof metadata === "string" ? undefined : metadata?.options;
-      return {
-        name,
-        description: options?.description ?? "",
-      };
-    })
+  const items = [
+    ...new Map<string, HelpCommandItem | null>(
+      [...commands.values()].map((Ctor) => {
+        const metadata = (Ctor as any)[COMMAND_META] as string | CommandMetadata | undefined;
+        const name = typeof metadata === "string" ? metadata : metadata?.name;
+        const options = typeof metadata === "string" ? undefined : metadata?.options;
+        if (!name) {
+          return [Ctor.name, null] as const;
+        }
+
+        return [
+          name,
+          {
+            name,
+            shortcut: options?.shortcut,
+            description: options?.description ?? "",
+          },
+        ] as const;
+      }),
+    ).values(),
+  ]
+    .filter((item): item is HelpCommandItem => item !== null)
     .sort((a, b) => a.name.localeCompare(b.name));
   const commandTable = createBorderlessTable([cmdColWidth, descColWidth]);
-  items.forEach((item) => commandTable.push([item.name, item.description]));
+  items.forEach((item) => {
+    const label = item.shortcut ? `${item.name}, ${item.shortcut}` : item.name;
+    commandTable.push([label, item.description]);
+  });
 
   const optionTable = createBorderlessTable([cmdColWidth, descColWidth]);
   optionTable.push(["--help", `Show help`]);
@@ -72,9 +93,11 @@ export function renderHelp(commands: Map<string, new () => BaseCommand>) {
 export function renderCommandHelp(commandName: string, commandCtor: new () => BaseCommand) {
   const termWidth = process.stdout.columns ?? 100;
   const metadata = (commandCtor as any)[COMMAND_META] as string | CommandMetadata | undefined;
+  const canonicalCommandName = typeof metadata === "string" ? commandName : (metadata?.name ?? commandName);
   const options = typeof metadata === "string" ? undefined : metadata?.options;
   const description = options?.description ?? "";
   const examples = options?.example ? [options.example] : [];
+  const shortcut = options?.shortcut?.trim();
 
   const argsType = (commandCtor as any)[COMMAND_ARGS_TYPE_META] as Function | undefined;
   const argumentDescriptions = argsType ? getArgumentDescriptions(argsType) : {};
@@ -155,17 +178,19 @@ export function renderCommandHelp(commandName: string, commandCtor: new () => Ba
       return [argumentName, typeLabel, description] as const;
     });
 
+  const hasOptions = normalizedArgumentRows.length > 0;
   console.log(CLI.DISPLAY_NAME);
   console.log("");
   console.log("Usage:");
-  console.log(`  ${CLI.BIN_NAME} ${commandName} [options]`);
+  console.log(`  ${CLI.BIN_NAME} ${canonicalCommandName} ${hasOptions ? "[options]" : ""}`);
+  shortcut && console.log(`  ${CLI.BIN_NAME} ${shortcut} ${hasOptions ? "[options]" : ""}`);
   if (description) {
     console.log("");
     console.log("Description:");
     console.log(`  ${description}`);
   }
 
-  if (normalizedArgumentRows.length > 0) {
+  if (hasOptions) {
     const argTable = createBorderlessTable([18, 20, Math.max(24, termWidth - 44)]);
     normalizedArgumentRows.forEach((row) => argTable.push(row as any));
     console.log("");

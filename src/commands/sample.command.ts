@@ -50,6 +50,7 @@ class SampleCommandOptions {
 @Command("sample", {
   description: "This is a sample command to demonstrate the command structure and argument parsing.",
   example: 'sample --name Alice --dry-run --times 10 --date 2025-01-23 --selectOne "Type 1" --selectMany "Type 1, Type 3"',
+  shortcut: "s",
 })
 export class SampleCommand extends CommandOf(SampleCommandOptions) {
   async executeAsync(): Promise<void> {
