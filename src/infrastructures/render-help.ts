@@ -1,5 +1,6 @@
 import { COMMAND_ARGS_TYPE_META, COMMAND_META, type BaseCommand, type CommandMetadata } from "@/commands/base/index.js";
 import { appConsts } from "@/constants/constants.js";
+import type { CommandManifestEntry } from "@/infrastructures/load-commands.js";
 import { getArgumentDescriptions } from "@/decorators/index.js";
 import { getMetadataStorage } from "class-validator";
 import Table from "cli-table3";
@@ -36,27 +37,20 @@ function createBorderlessTable(colWidths: number[]) {
   });
 }
 
-export function renderHelp(commands: Map<string, new () => BaseCommand>) {
+export function renderHelp(commands: Iterable<CommandManifestEntry>) {
   const termWidth = process.stdout.columns ?? 100;
   const cmdColWidth = 18;
   const descColWidth = Math.max(40, termWidth - cmdColWidth - 6);
 
   const items = [
     ...new Map<string, HelpCommandItem | null>(
-      [...commands.values()].map((Ctor) => {
-        const metadata = (Ctor as any)[COMMAND_META] as string | CommandMetadata | undefined;
-        const name = typeof metadata === "string" ? metadata : metadata?.name;
-        const options = typeof metadata === "string" ? undefined : metadata?.options;
-        if (!name) {
-          return [Ctor.name, null] as const;
-        }
-
+      [...commands].map((command) => {
         return [
-          name,
+          command.name,
           {
-            name,
-            shortcut: options?.shortcut,
-            description: options?.description ?? "",
+            name: command.name,
+            shortcut: command.shortcut,
+            description: command.description,
           },
         ] as const;
       }),

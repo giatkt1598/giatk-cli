@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import type { BaseCommand } from "@/commands/base/index.js";
-import { appSettings, loadCommands, parseArgs, renderCommandHelp, renderHelp } from "@/infrastructures/index.js";
+import { appSettings, loadCommandByName, loadCommands, parseArgs, renderCommandHelp, renderHelp, scanCommandManifest, type CommandManifestEntry } from "@/infrastructures/index.js";
 import chalk from "chalk";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime.js";
@@ -24,6 +24,21 @@ function findOptionCommand(commands: Map<string, new () => BaseCommand>, options
   return undefined;
 }
 
+function findOptionCommandInManifest(commands: Map<string, CommandManifestEntry>, options: Record<string, string | boolean>) {
+  for (const commandName of commands.keys()) {
+    if (!commandName.startsWith("--")) continue;
+    const key = _.camelCase(commandName.slice(2));
+    if (options[key] === true) {
+      return commandName;
+    }
+  }
+  return undefined;
+}
+
+function getUniqueManifestEntries(commands: Map<string, CommandManifestEntry>) {
+  return [...new Map([...commands.values()].map((command) => [command.modulePath, command] as const)).values()];
+}
+
 let newVersionAlert: string | undefined;
 let checkForUpdateTimer: NodeJS.Timeout | undefined;
 async function main() {
@@ -40,9 +55,24 @@ async function main() {
 
   checkForUpdateTimer.unref();
 
-  const commands = await loadCommands(join(__dirname, "commands"));
+  const commandsDir = join(__dirname, "commands");
 
-  const optionCommandName = findOptionCommand(commands, args.options);
+  let commands: Map<string, new () => BaseCommand> | undefined;
+  let manifest: Map<string, CommandManifestEntry> | undefined;
+  const ensureCommandsLoaded = async () => {
+    if (!commands) {
+      commands = await loadCommands(commandsDir);
+    }
+
+    return commands;
+  };
+  const ensureManifestLoaded = async () => {
+    if (!manifest) {
+      manifest = await scanCommandManifest(commandsDir);
+    }
+
+    return manifest;
+  };
 
   if (!args.command && (args.options.version === true || args.options.v === true)) {
     await new CliService().showVersion();
@@ -50,25 +80,28 @@ async function main() {
   }
 
   if (args.options.help === true) {
+    const loadedManifest = await ensureManifestLoaded();
+    const optionCommandName = findOptionCommandInManifest(loadedManifest, args.options);
+
     if (!args.command) {
       if (optionCommandName) {
-        const optionCmd = commands.get(optionCommandName);
+        const optionCmd = await loadCommandByName(commandsDir, optionCommandName);
         if (optionCmd) {
           renderCommandHelp(optionCommandName, optionCmd);
           return;
         }
       }
-      renderHelp(commands);
+      renderHelp(getUniqueManifestEntries(loadedManifest));
       return;
     }
 
-    const helpCommand = commands.get(args.command);
+    const helpCommand = await loadCommandByName(commandsDir, args.command);
     if (helpCommand) {
       renderCommandHelp(args.command, helpCommand);
       return;
     }
 
-    renderHelp(commands);
+    renderHelp(getUniqueManifestEntries(loadedManifest));
     return;
   } else if (args.options.upgrade === true) {
     await new CliService().upgradeCli();
@@ -78,21 +111,24 @@ async function main() {
     return;
   }
 
-  const Cmd = commands.get(args.command!);
+  const Cmd = args.command ? await loadCommandByName(commandsDir, args.command) : undefined;
   if (Cmd) {
     await new Cmd().executeAsync();
     return;
   }
 
-  if (!args.command && optionCommandName) {
-    const optionCmd = commands.get(optionCommandName);
+  if (!args.command) {
+    const loadedCommands = await ensureCommandsLoaded();
+    const optionCommandName = findOptionCommand(loadedCommands, args.options);
+    const optionCmd = optionCommandName ? loadedCommands.get(optionCommandName) : undefined;
     if (optionCmd) {
       await new optionCmd().executeAsync();
       return;
     }
   }
 
-  renderHelp(commands);
+  const loadedManifest = await ensureManifestLoaded();
+  renderHelp(getUniqueManifestEntries(loadedManifest));
 }
 
 main()
