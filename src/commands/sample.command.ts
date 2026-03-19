@@ -2,7 +2,6 @@ import { Description, IsDayjs, IsMultiSelect, IsSingleSelect } from "@/decorator
 import { LoggerService } from "@/services/index.js";
 import { Helper } from "@/utilities/helper.js";
 import { PromisePool } from "@supercharge/promise-pool";
-import chalk from "chalk";
 import { Type } from "class-transformer";
 import { IsBoolean, IsInt, IsOptional, IsString, Length, Max, Min } from "class-validator";
 import type dayjs from "dayjs";
@@ -25,12 +24,12 @@ class SampleCommandOptions {
   @Type(() => Number)
   times!: number;
 
-  @Description(`Select one value from list.\nValues: ${SAMPLE_COMMAND_TYPES.map((val) => chalk.yellow(val)).join(", ")}`)
+  @Description(`Select one value from list.`)
   @IsOptional()
   @IsSingleSelect(SAMPLE_COMMAND_TYPES)
   selectOne?: SampleCommandType = "Type 1";
 
-  @Description(`Select multiple values, separate values with commas.\nValues: ${SAMPLE_COMMAND_TYPES.join(", ")}`)
+  @Description(`Select multiple values, separate values with commas.`)
   @IsOptional()
   @IsMultiSelect(SAMPLE_COMMAND_TYPES)
   selectMany?: SampleCommandType[];

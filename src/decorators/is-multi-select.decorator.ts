@@ -23,6 +23,7 @@ export function IsMultiSelect(allowedValues: readonly string[]): PropertyDecorat
       name: "isMultiSelect",
       target: target.constructor,
       propertyName: String(propertyKey),
+      constraints: [...allowedSet],
       validator: {
         validate(value: unknown, args: ValidationArguments) {
           const isOptional = hasIsOptionalDecorator(args);

@@ -124,12 +124,10 @@ export function renderCommandHelp(commandName: string, commandCtor: new () => Ba
   const normalizedArgumentRows = [...argumentFields]
     .sort((a, b) => a.localeCompare(b))
     .map((arg) => {
-      const metadatas = byProperty.get(arg) ?? [];
-      const isOptional = metadatas.some((m) => m.name === "isOptional");
+      const metadataItems = byProperty.get(arg) ?? [];
+      const isOptional = metadataItems.some((m) => m.name === "isOptional");
       const typeLabel = inferArgType(arg);
-      const isEnum = typeLabel === "enum";
-      const enumMetadata = metadatas.find((m) => m.name === "isIn");
-      const enumChoices = Array.isArray(enumMetadata?.constraints?.[0]) ? enumMetadata.constraints[0].map((v: unknown) => String(v)) : [];
+      const isChoiceType = ["single-select", "multi-select"].includes(typeLabel);
       const defaultValue = defaultValues[arg];
       const baseDescription = argumentDescriptions[arg] ?? "";
       let description = baseDescription;
@@ -138,8 +136,19 @@ export function renderCommandHelp(commandName: string, commandCtor: new () => Ba
         const defaultLabel = typeof defaultValue === "object" ? JSON.stringify(defaultValue) : String(defaultValue);
         description = baseDescription ? `${baseDescription} (default: ${defaultLabel})` : `Default value: ${defaultLabel}`;
       }
-      if (isEnum && enumChoices.length > 0) {
-        description = description ? `${description}\nValues: ${enumChoices.join(", ")}` : `Values: ${enumChoices.join(", ")}`;
+      if (isChoiceType) {
+        let choiceValues: string[] = [];
+        if (typeLabel === "single-select") {
+          const enumMetadata = metadataItems.find((m) => m.name === "isIn");
+          choiceValues = Array.isArray(enumMetadata?.constraints?.[0]) ? enumMetadata.constraints[0].map((v: unknown) => String(v)) : [];
+        } else if (typeLabel === "multi-select") {
+          const enumMetadata = metadataItems.find((m) => m.name === "isMultiSelect");
+          choiceValues = Array.isArray(enumMetadata?.constraints) ? enumMetadata.constraints.map((v: unknown) => String(v)) : [];
+        }
+
+        if (choiceValues.length > 0) {
+          description = description ? `${description}\nValues: ${choiceValues.join(", ")}` : `Values: ${choiceValues.join(", ")}`;
+        }
       }
       const isRequired = !isOptional && !hasDefaultValue;
       const argumentName = `--${arg}${isRequired ? "*" : ""}`;
