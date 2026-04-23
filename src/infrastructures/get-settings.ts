@@ -9,10 +9,6 @@ interface AppSettings {
     email?: string;
     token?: string;
   };
-  GitHub?: {
-    owner?: string;
-    useCliFallback?: boolean;
-  };
 }
 
 async function getSettings(): Promise<AppSettings> {
