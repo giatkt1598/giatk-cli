@@ -1,16 +1,17 @@
-import { Description } from "@/decorators/index.js";
-import { JiraService } from "@/services/index.js";
-import { IsString, Matches } from "class-validator";
+import { Description, IsSingleSelect } from "@/decorators/index.js";
+import { JiraService, pullRequestStates, type PullRequestState } from "@/services/index.js";
+import { IsString } from "class-validator";
 import { CommandOf } from "./base/base.command.js";
 import { Command } from "./base/command.decorator.js";
 
 class JiraPrsCommandOptions {
   @Description("Jira ticket key, for example GIA-15.")
   @IsString()
-  @Matches(/^[A-Z][A-Z0-9_]*-\d+$/u, {
-    message: "ticket must match format like GIA-15",
-  })
   ticket!: string;
+
+  @Description("Filter pull requests by state.")
+  @IsSingleSelect(pullRequestStates)
+  state?: PullRequestState = "open";
 }
 
 @Command("jira:prs", {
@@ -19,8 +20,12 @@ class JiraPrsCommandOptions {
 })
 export class JiraPrsCommand extends CommandOf(JiraPrsCommandOptions) {
   async executeAsync(): Promise<void> {
+    console.log("Fetching pull requests...");
     const ticketKey = this.args.ticket.trim().toUpperCase();
-    const pullRequests = await new JiraService().getPullRequestsByTicketKey(ticketKey);
+    const pullRequests = await new JiraService().getPullRequestsFromJira({
+      ticketKey,
+      state: this.args.state,
+    });
 
     if (pullRequests.length === 0) {
       console.log(`No pull requests linked to ticket ${ticketKey}.`);
@@ -29,9 +34,7 @@ export class JiraPrsCommand extends CommandOf(JiraPrsCommandOptions) {
 
     pullRequests.forEach((pullRequest) => {
       const numberLabel = pullRequest.number !== null ? `#${pullRequest.number}` : "#?";
-      console.log(`${numberLabel} [${pullRequest.state}] ${pullRequest.repository} ${pullRequest.title}`);
-      console.log(`  ${pullRequest.url}`);
-      console.log(`  source: ${pullRequest.source}`);
+      console.log(`${numberLabel} [${pullRequest.state}] ${pullRequest.url}`);
     });
   }
 }
