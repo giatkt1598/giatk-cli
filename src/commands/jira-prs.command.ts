@@ -32,9 +32,8 @@ export class JiraPrsCommand extends CommandOf(JiraPrsCommandOptions) {
       return;
     }
 
-    pullRequests.forEach((pullRequest) => {
-      const numberLabel = pullRequest.number !== null ? `#${pullRequest.number}` : "#?";
-      console.log(`${numberLabel} [${pullRequest.state}] ${pullRequest.url}`);
+    pullRequests.forEach((pullRequest, idx) => {
+      console.log(`#${idx + 1} [${pullRequest.state}] ${pullRequest.url}`);
     });
   }
 }
