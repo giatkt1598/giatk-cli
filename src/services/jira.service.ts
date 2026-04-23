@@ -4,7 +4,7 @@ export interface PullRequestLink {
   number: number;
   title: string;
   url: string;
-  state: PullRequestState;
+  state: JiraPullRequestState;
   repository: string;
 }
 
@@ -20,13 +20,13 @@ interface JiraDevStatusDetail {
   pullRequests?: JiraPullRequest[];
 }
 
-export const pullRequestStates = ["open", "closed", "merged", "unknown", "all"] as const;
-export type PullRequestState = (typeof pullRequestStates)[number];
+export const jiraPullRequestStates = ["open", "declined", "merged", "unknown", "all"] as const;
+export type JiraPullRequestState = (typeof jiraPullRequestStates)[number];
 interface JiraPullRequest {
   id?: string | number;
   name?: string;
   url?: string;
-  status?: PullRequestState;
+  status?: JiraPullRequestState;
   author?: {
     name?: string;
   };
@@ -51,7 +51,7 @@ export class JiraService {
     return !!(this.jiraConfig?.baseUrl && this.jiraConfig?.email && this.jiraConfig?.token);
   }
 
-  public async getPullRequestsFromJira({ ticketKey, state }: { ticketKey: string; state?: PullRequestState }): Promise<PullRequestLink[]> {
+  public async getPullRequestsFromJira({ ticketKey, state }: { ticketKey: string; state?: JiraPullRequestState }): Promise<PullRequestLink[]> {
     if (!this.hasJiraConfig()) {
       return [];
     }
@@ -63,7 +63,8 @@ export class JiraService {
         ?.flatMap((detail) => detail.pullRequests ?? [])
         .map((pullRequest) => this.mapJiraPullRequest(pullRequest))
         .filter((pullRequest): pullRequest is PullRequestLink => pullRequest !== null)
-        .filter((pullRequest) => !state || state === "all" || pullRequest.state === state) ?? []
+        .filter((pullRequest) => !state || state === "all" || pullRequest.state === state)
+        .sort((a, b) => a.url.localeCompare(b.url)) ?? []
     );
   }
 

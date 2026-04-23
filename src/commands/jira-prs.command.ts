@@ -1,5 +1,5 @@
 import { Description, IsSingleSelect } from "@/decorators/index.js";
-import { JiraService, pullRequestStates, type PullRequestState } from "@/services/index.js";
+import { JiraService, jiraPullRequestStates, type JiraPullRequestState } from "@/services/index.js";
 import { IsString } from "class-validator";
 import { CommandOf } from "./base/base.command.js";
 import { Command } from "./base/command.decorator.js";
@@ -10,8 +10,8 @@ class JiraPrsCommandOptions {
   ticket!: string;
 
   @Description("Filter pull requests by state.")
-  @IsSingleSelect(pullRequestStates)
-  state?: PullRequestState = "open";
+  @IsSingleSelect(jiraPullRequestStates)
+  state?: JiraPullRequestState = "open";
 }
 
 @Command("jira:prs", {
@@ -21,7 +21,10 @@ class JiraPrsCommandOptions {
 export class JiraPrsCommand extends CommandOf(JiraPrsCommandOptions) {
   async executeAsync(): Promise<void> {
     console.log("Fetching pull requests...");
-    const ticketKey = this.args.ticket.trim().toUpperCase();
+    let ticketKey = this.args.ticket.trim().toUpperCase();
+    if (ticketKey.includes("/")) {
+      ticketKey = ticketKey.split("/").pop() ?? ticketKey;
+    }
     const pullRequests = await new JiraService().getPullRequestsFromJira({
       ticketKey,
       state: this.args.state,
@@ -32,9 +35,8 @@ export class JiraPrsCommand extends CommandOf(JiraPrsCommandOptions) {
       return;
     }
 
-    pullRequests.forEach((pullRequest) => {
-      const numberLabel = pullRequest.number !== null ? `#${pullRequest.number}` : "#?";
-      console.log(`${numberLabel} [${pullRequest.state}] ${pullRequest.url}`);
+    pullRequests.forEach((pullRequest, idx) => {
+      console.log(`#${idx + 1} ${pullRequest.url} [${pullRequest.state}]`);
     });
   }
 }
