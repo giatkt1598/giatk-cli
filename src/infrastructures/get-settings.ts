@@ -3,8 +3,12 @@ import * as path from "path";
 import { Helper } from "../utilities/helper.js";
 
 interface AppSettings {
-  // [key: string]: any;
   CheckForUpdate?: boolean;
+  Jira?: {
+    baseUrl?: string;
+    email?: string;
+    token?: string;
+  };
 }
 
 async function getSettings(): Promise<AppSettings> {

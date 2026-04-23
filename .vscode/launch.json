@@ -5,8 +5,8 @@
       "type": "node-terminal",
       "name": "Run Script: dev",
       "request": "launch",
-      "command": "npm run dev",
-      // "command": "npm run dev sample --name Alice --dry-run --times 10 --date 2025-01-23 --selectOne \"Type 1\"",
+      // "command": "npx tsx watch src/index.ts sample --name Alice --dry-run --times 10 --date 2025-01-23 --selectOne \"Type 1\"",
+      "command": "npx tsx watch src/index.ts jira:prs --ticket GIA-15",
       "cwd": "${workspaceFolder}"
     }
   ]
