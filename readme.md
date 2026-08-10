@@ -51,6 +51,7 @@ giatk [command] [options]
 ### Built-in commands
 
 - `hello`: Print a simple hello message.
+- `login`: Demonstrates receiving input from a local browser form and continuing in the CLI.
 - `sample`: Demonstrates typed options, validation, logging, async processing, and custom decorators.
 
 Examples:
@@ -58,6 +59,7 @@ Examples:
 ```bash
 giatk --help
 giatk hello
+giatk login
 giatk sample --help
 giatk sample --name Alice --times 3 --date 2025-01-23 --dry-run
 ```
