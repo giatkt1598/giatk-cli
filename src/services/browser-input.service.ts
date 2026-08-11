@@ -14,8 +14,23 @@ const MAX_BODY_SIZE = 16 * 1024;
 const DEFAULT_SUCCESS_HTML = "<h1>Submitted successfully</h1><p>You can close this tab and return to the CLI.</p>";
 
 function writeHtml(response: ServerResponse, statusCode: number, body: string) {
-  response.writeHead(statusCode, { "content-type": "text/html; charset=utf-8" });
+  // The callback server is short-lived. Do not let the browser keep its
+  // connection alive after the response, otherwise server.close() can wait
+  // forever for the browser to release the idle socket.
+  response.writeHead(statusCode, {
+    "content-type": "text/html; charset=utf-8",
+    connection: "close",
+  });
   response.end(body);
+}
+
+async function waitForResponseToFinish(response: ServerResponse) {
+  if (response.writableFinished) return;
+
+  await new Promise<void>((resolve, reject) => {
+    response.once("finish", resolve);
+    response.once("error", reject);
+  });
 }
 
 function escapeHtml(value: string) {
@@ -93,6 +108,7 @@ export class BrowserInputService<TInput> {
         if (request.method === "POST" && request.url === "/submit") {
           const input = this.options.parseSubmission(await readRequestBody(request));
           writeHtml(response, 200, this.options.successHtml);
+          await waitForResponseToFinish(response);
           await finish(undefined, input);
           return;
         }
