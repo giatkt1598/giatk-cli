@@ -50,10 +50,10 @@ async function main() {
   const args = parseArgs();
   checkForUpdateTimer = setTimeout(() => {
     appSettings.CheckForUpdate &&
-      !args.options.upgrade &&
+      !args.options.update &&
       new CliService().checkForUpdate().then((result) => {
         if (result.hasUpdate) {
-          newVersionAlert = `A new CLI version ${result.latestVersion} is available. Run "giatk --upgrade" to update.`;
+          newVersionAlert = `A new CLI version ${result.latestVersion} is available. Run "giatk --update" to update.`;
         }
       });
   });
@@ -114,8 +114,8 @@ async function main() {
 
     renderHelp(getUniqueManifestEntries(loadedManifest));
     return;
-  } else if (args.options.upgrade === true) {
-    await new CliService().upgradeCli();
+  } else if (args.options.update === true) {
+    await new CliService().updateCli();
     return;
   } else if (args.options.config === true) {
     await new CliService().openFileConfig();

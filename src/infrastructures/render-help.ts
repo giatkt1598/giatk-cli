@@ -67,7 +67,7 @@ export function renderHelp(commands: Iterable<CommandManifestEntry>) {
   const optionTable = createBorderlessTable([cmdColWidth, descColWidth]);
   optionTable.push(["--help", `Show help`]);
   optionTable.push(["--version, -v", `Print version information and quit`]);
-  optionTable.push(["--upgrade", `Upgrade CLI to the latest version`]);
+  optionTable.push(["--update", `Update CLI to the latest version`]);
   optionTable.push(["--config", `Open CLI configuration file`]);
 
   console.log(CLI.DISPLAY_NAME);

@@ -6,7 +6,7 @@ export class Helper {
   static getProjectRoot() {
     let dir = dirname(fileURLToPath(import.meta.url));
 
-    while (!existsSync(path.join(dir, "package.json"))) {
+    while (!existsSync(path.join(dir, "package.json")) || !existsSync(path.join(dir, "appsettings.json"))) {
       const parent = path.dirname(dir);
       if (parent === dir) break;
       dir = parent;

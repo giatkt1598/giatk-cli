@@ -2,10 +2,14 @@ import { appConsts } from "@/constants/constants.js";
 import { Helper } from "@/utilities/helper.js";
 import { useCommand } from "@/utilities/use-command.js";
 import chalk from "chalk";
-import dayjs from "dayjs";
-import path from "path";
+import path, { dirname, join } from "path";
+import { fileURLToPath } from "url";
 
-declare const __APP_VERSION__: string;
+interface BuildPackage {
+  name: string;
+  version: string;
+  buildVersion: string;
+}
 
 export class CliService {
   constructor() {}
@@ -33,9 +37,29 @@ export class CliService {
    *
    * @returns {Promise<string>} The current version of the CLI.
    */
+  async getBuildPackage(): Promise<BuildPackage> {
+    const moduleDir = dirname(fileURLToPath(import.meta.url));
+    const packagePaths = [join(moduleDir, "package.json"), join(moduleDir, "..", "..", "package.json")];
+
+    for (const packagePath of packagePaths) {
+      if (!(await Helper.fileExists(packagePath))) {
+        continue;
+      }
+
+      const packageJson = await Helper.readFileAs<Partial<BuildPackage>>(packagePath);
+      return {
+        name: typeof packageJson.name === "string" ? packageJson.name : "",
+        version: typeof packageJson.version === "string" ? packageJson.version : "",
+        buildVersion: typeof packageJson.buildVersion === "string" ? packageJson.buildVersion : "",
+      };
+    }
+
+    return { name: "", version: "", buildVersion: "" };
+  }
+
   async getCurrentVersion() {
-    const version = typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : process.env.npm_package_version;
-    return Promise.resolve(version);
+    const buildPackage = await this.getBuildPackage();
+    return buildPackage.version || process.env.npm_package_version || "";
   }
 
   /**
@@ -45,19 +69,19 @@ export class CliService {
    * If there is a newer version, it upgrades the CLI by checking out the main branch,
    * pulling the latest changes, and rebuilding the CLI.
    */
-  async upgradeCli() {
+  async updateCli() {
     const [currentVersion, latestVersion] = await Promise.all([this.getCurrentVersion(), this.getLatestVersion()]);
     if (currentVersion === latestVersion) {
       console.log("CLI is already up to date.");
     } else {
-      console.log(`Found a new CLI version: ${chalk.yellow(latestVersion)} (current: ${currentVersion}). Upgrading...`);
+      console.log(`Found a new CLI version: ${chalk.yellow(latestVersion)} (current: ${currentVersion}). Updating...`);
 
       const { exec } = useCommand({ cwd: Helper.getProjectRoot() });
       await exec(`git checkout ${appConsts.CLI_MAIN_BRANCH}`);
       await exec(`git pull origin ${appConsts.CLI_MAIN_BRANCH}`);
       await exec(`npm run build`);
 
-      console.log(chalk.green(`CLI is upgraded successfully.`));
+      console.log(chalk.green(`CLI is updated successfully.`));
     }
   }
 
@@ -102,22 +126,14 @@ export class CliService {
    *
    */
   async showVersion() {
-    const version = await this.getCurrentVersion();
-    const { exec } = useCommand({ cwd: Helper.getProjectRoot(), silent: true });
-    const modifiedRaw = await exec("git log -1 --format=%ci");
-    const commitHash = await exec("git rev-parse --short HEAD");
-
-    const lastModified = modifiedRaw ? dayjs(modifiedRaw) : null;
-    const relativeTime = lastModified?.isValid() ? lastModified.fromNow() : null;
+    const buildPackage = await this.getBuildPackage();
+    const version = buildPackage.version || process.env.npm_package_version || "";
 
     const segments = [`${appConsts.CLI.DISPLAY_NAME} version ${version}`];
-    if (commitHash) {
-      segments.push(`build ${commitHash}`);
-    }
-    if (relativeTime) {
-      segments.push(`(${relativeTime})`);
+    if (buildPackage.buildVersion) {
+      segments.push(`build ${buildPackage.buildVersion}`);
     }
 
-    console.log(segments.join(", ").replace(", (", " ("));
+    console.log(segments.join(", "));
   }
 }

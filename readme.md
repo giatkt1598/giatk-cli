@@ -10,7 +10,7 @@ A TypeScript-first Node.js CLI with a decorator-based command system, typed argu
 - Global CLI utilities:
   - `--help`
   - `--version` / `-v`
-  - `--upgrade`
+  - `--update`
   - `--config`
 - Environment override support (`appsettings.{NODE_ENV}.json`)
 - Fast bundling via `esbuild`
@@ -45,7 +45,7 @@ giatk [command] [subcommand] [options]
 
 - `--help` Show help
 - `--version`, `-v` Show CLI version and build info
-- `--upgrade` Pull latest CLI version from the main branch and rebuild
+- `--update` Pull latest CLI version from the main branch and rebuild
 - `--config` Open runtime configuration file (`appsettings.production.json`)
 
 ### Built-in commands
@@ -92,7 +92,7 @@ npm run dev
 npm run build
 ```
 
-Artifacts are generated in `dist/`.
+Artifacts are generated in `dist/`. The build also writes `dist/package.json` with the package `name`, `version`, the Git commit hash in `buildVersion`, and `type: "module"` so Node.js loads the ESM build without a warning.
 
 ## Testing
 
