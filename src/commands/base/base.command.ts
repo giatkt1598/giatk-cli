@@ -1,6 +1,7 @@
-import { parseArgs } from "@/infrastructures/parse-args.js";
 import { plainToInstance } from "class-transformer";
 import { getMetadataStorage, validateSync, type ValidationError } from "class-validator";
+import { getArgumentShortcuts } from "../../decorators/shortcut.decorator.js";
+import { parseArgs } from "../../infrastructures/parse-args.js";
 
 type ClassType<T extends object> = new () => T;
 export const COMMAND_ARGS_TYPE_META = "__command_args_type_meta__";
@@ -25,8 +26,19 @@ export abstract class BaseCommand<TArgs extends object = Record<string, unknown>
       return options as TArgs;
     }
 
+    const normalizedOptions = { ...options };
+    const argumentShortcuts = getArgumentShortcuts(argsType);
+    for (const [property, shortcut] of Object.entries(argumentShortcuts)) {
+      if (normalizedOptions[property] === undefined && normalizedOptions[shortcut] !== undefined) {
+        normalizedOptions[property] = normalizedOptions[shortcut];
+      }
+      if (shortcut !== property) {
+        delete normalizedOptions[shortcut];
+      }
+    }
+
     // Convert 'false' and 'true' strings to boolean values when type of property in argsType is boolean
-    const instance = plainToInstance(argsType, options, {
+    const instance = plainToInstance(argsType, normalizedOptions, {
       enableImplicitConversion: false,
       exposeDefaultValues: true,
     });

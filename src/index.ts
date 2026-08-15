@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import type { BaseCommand } from "@/commands/base/index.js";
-import { appSettings, loadCommandByName, loadCommands, parseArgs, renderCommandHelp, renderHelp, scanCommandManifest, type CommandManifestEntry } from "@/infrastructures/index.js";
+import { appSettings, loadCommandByName, loadCommands, parseArgs, renderCommandGroupHelp, renderCommandHelp, renderHelp, scanCommandManifest, type CommandManifestEntry } from "@/infrastructures/index.js";
 import chalk from "chalk";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime.js";
@@ -37,6 +37,11 @@ function findOptionCommandInManifest(commands: Map<string, CommandManifestEntry>
 
 function getUniqueManifestEntries(commands: Map<string, CommandManifestEntry>) {
   return [...new Map([...commands.values()].map((command) => [command.modulePath, command] as const)).values()];
+}
+
+function getCommandGroupEntries(commands: Map<string, CommandManifestEntry>, groupName: string) {
+  const prefix = `${groupName} `;
+  return getUniqueManifestEntries(commands).filter((command) => command.name.startsWith(prefix));
 }
 
 let newVersionAlert: string | undefined;
@@ -101,6 +106,12 @@ async function main() {
       return;
     }
 
+    const groupCommands = getCommandGroupEntries(loadedManifest, args.command);
+    if (groupCommands.length > 0) {
+      renderCommandGroupHelp(args.command, groupCommands);
+      return;
+    }
+
     renderHelp(getUniqueManifestEntries(loadedManifest));
     return;
   } else if (args.options.upgrade === true) {
@@ -115,6 +126,15 @@ async function main() {
   if (Cmd) {
     await new Cmd().executeAsync();
     return;
+  }
+
+  if (args.command) {
+    const loadedManifest = await ensureManifestLoaded();
+    const groupCommands = getCommandGroupEntries(loadedManifest, args.command);
+    if (groupCommands.length > 0) {
+      renderCommandGroupHelp(args.command, groupCommands);
+      return;
+    }
   }
 
   if (!args.command) {

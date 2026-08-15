@@ -2,6 +2,7 @@ import _ from "lodash";
 
 export interface ParsedArgs {
   command: string | undefined;
+  commandParts: string[];
   options: Record<string, string | boolean>;
   positionals: string[];
 }
@@ -12,7 +13,7 @@ function isNegativeNumberToken(value: string | undefined) {
 
 export function parseArgs(): ParsedArgs {
   const argv = process.argv.slice(2);
-  let command: string | undefined;
+  const commandParts: string[] = [];
   const options: Record<string, string | boolean> = {};
   const positionals: string[] = [];
 
@@ -21,9 +22,18 @@ export function parseArgs(): ParsedArgs {
   while (i < argv.length) {
     const arg = argv[i];
 
-    // command (first non-flag)
-    if (!command && !arg?.startsWith("-")) {
-      command = arg;
+    // Command and subcommand tokens are the leading non-flag arguments.
+    if (commandParts.length > 0 || !arg?.startsWith("-")) {
+      if (arg && !arg.startsWith("-")) {
+        commandParts.push(arg);
+        i++;
+        continue;
+      }
+    }
+
+    // Keep non-command positional arguments for future command support.
+    if (arg && !arg.startsWith("-")) {
+      positionals.push(arg);
       i++;
       continue;
     }
@@ -101,5 +111,10 @@ export function parseArgs(): ParsedArgs {
     i++;
   }
 
-  return { command, options, positionals };
+  return {
+    command: commandParts.length > 0 ? commandParts.join(" ") : undefined,
+    commandParts,
+    options,
+    positionals,
+  };
 }

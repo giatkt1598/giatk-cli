@@ -2,7 +2,7 @@ import { build } from "esbuild";
 import pkg from "./package.json" with { type: "json" };
 
 build({
-    entryPoints: ["src/index.ts", "src/commands/*"],
+    entryPoints: ["src/index.ts", "src/commands/**/*.ts"],
     external: ["shelljs"],
     outdir: "dist",
     splitting: false,

@@ -38,7 +38,7 @@ npm run cli:uninstall
 ## Usage
 
 ```bash
-giatk [command] [options]
+giatk [command] [subcommand] [options]
 ```
 
 ### Global options
@@ -53,6 +53,7 @@ giatk [command] [options]
 - `hello`: Print a simple hello message.
 - `login`: Demonstrates receiving input from a local browser form and continuing in the CLI.
 - `sample`: Demonstrates typed options, validation, logging, async processing, and custom decorators.
+- Commands can be organized in nested folders and named with a command path, such as `docker start`.
 
 Examples:
 
@@ -62,6 +63,8 @@ giatk hello
 giatk login
 giatk sample --help
 giatk sample --name Alice --times 3 --date 2025-01-23 --dry-run
+giatk docker start -n my-container
+giatk docker --help
 ```
 
 ## Configuration
@@ -107,7 +110,8 @@ npm run test:watch
 
 ```text
 src/
-  commands/         # CLI commands
+  commands/         # CLI commands and nested command groups
+    docker/         # Docker subcommands
   decorators/       # Validation/description decorators
   infrastructures/  # Argument parsing, help rendering, settings loading
   services/         # CLI runtime services

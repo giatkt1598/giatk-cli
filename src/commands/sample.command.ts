@@ -1,4 +1,4 @@
-import { Description, IsDayjs, IsMultiSelect, IsSingleSelect } from "@/decorators/index.js";
+import { Description, IsDayjs, IsMultiSelect, IsSingleSelect, Shortcut } from "@/decorators/index.js";
 import { LoggerService } from "@/services/index.js";
 import { Helper } from "@/utilities/helper.js";
 import { PromisePool } from "@supercharge/promise-pool";
@@ -14,12 +14,14 @@ class SampleCommandOptions {
   @Description("User name to greet.")
   @IsString()
   @Length(1, 50)
+  @Shortcut("n")
   name!: string;
 
   @Description("Number of greeting lines to print.")
   @IsInt()
   @Min(-10)
   @Max(10)
+  @Shortcut("t")
   times!: number;
 
   @Description(`Select one value from list.`)
@@ -42,12 +44,13 @@ class SampleCommandOptions {
 
   @Description("Date in YYYY-MM-DD format.")
   @IsDayjs({ format: "YYYY-MM-DD" })
+  @Shortcut("d")
   date!: dayjs.Dayjs;
 }
 
 @Command("sample", {
   description: "This is a sample command to demonstrate the command structure and argument parsing.",
-  example: 'sample --name Alice --dry-run --times 10 --date 2025-01-23 --selectOne "Type 1" --selectMany "Type 1, Type 3"',
+  example: 'sample -n Alice --dry-run --times 10 -d 2025-01-23 --selectOne "Type 1" --selectMany "Type 1, Type 3"',
   shortcut: "s",
 })
 export class SampleCommand extends CommandOf(SampleCommandOptions) {

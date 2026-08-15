@@ -1,7 +1,7 @@
 import { COMMAND_ARGS_TYPE_META, COMMAND_META, type BaseCommand, type CommandMetadata } from "@/commands/base/index.js";
 import { appConsts } from "@/constants/constants.js";
 import type { CommandManifestEntry } from "@/infrastructures/load-commands.js";
-import { getArgumentDescriptions } from "@/decorators/index.js";
+import { getArgumentDescriptions, getArgumentShortcuts } from "@/decorators/index.js";
 import { getMetadataStorage } from "class-validator";
 import Table from "cli-table3";
 
@@ -84,6 +84,32 @@ export function renderHelp(commands: Iterable<CommandManifestEntry>) {
   console.log(`Use "${CLI.BIN_NAME} [command] --help" for more information about a command.`);
 }
 
+export function renderCommandGroupHelp(groupName: string, commands: Iterable<CommandManifestEntry>) {
+  const termWidth = process.stdout.columns ?? 100;
+  const cmdColWidth = 24;
+  const descColWidth = Math.max(40, termWidth - cmdColWidth - 6);
+  const prefix = `${groupName} `;
+  const items = [...commands]
+    .filter((command) => command.name.startsWith(prefix))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const commandTable = createBorderlessTable([cmdColWidth, descColWidth]);
+
+  items.forEach((item) => {
+    const label = item.shortcut ? `${item.name}, ${item.shortcut}` : item.name;
+    commandTable.push([label, item.description]);
+  });
+
+  console.log(CLI.DISPLAY_NAME);
+  console.log("");
+  console.log("Usage:");
+  console.log(`  ${CLI.BIN_NAME} ${groupName} [subcommand] [options]`);
+  console.log("");
+  console.log("Subcommands:");
+  console.log(commandTable.toString());
+  console.log("");
+  console.log(`Use "${CLI.BIN_NAME} ${groupName} [subcommand] --help" for more information about a subcommand.`);
+}
+
 export function renderCommandHelp(commandName: string, commandCtor: new () => BaseCommand) {
   const termWidth = process.stdout.columns ?? 100;
   const metadata = (commandCtor as any)[COMMAND_META] as string | CommandMetadata | undefined;
@@ -95,6 +121,7 @@ export function renderCommandHelp(commandName: string, commandCtor: new () => Ba
 
   const argsType = (commandCtor as any)[COMMAND_ARGS_TYPE_META] as Function | undefined;
   const argumentDescriptions = argsType ? getArgumentDescriptions(argsType) : {};
+  const argumentShortcuts = argsType ? getArgumentShortcuts(argsType) : {};
   const defaultValues: Record<string, unknown> = {};
   if (argsType) {
     try {
@@ -168,7 +195,8 @@ export function renderCommandHelp(commandName: string, commandCtor: new () => Ba
         }
       }
       const isRequired = !isOptional && !hasDefaultValue;
-      const argumentName = `--${arg}${isRequired ? "*" : ""}`;
+      const shortcut = argumentShortcuts[arg];
+      const argumentName = `--${arg}${isRequired ? "*" : ""}${shortcut ? `, -${shortcut}` : ""}`;
       return [argumentName, typeLabel, description] as const;
     });
 
@@ -185,7 +213,7 @@ export function renderCommandHelp(commandName: string, commandCtor: new () => Ba
   }
 
   if (hasOptions) {
-    const argTable = createBorderlessTable([18, 20, Math.max(24, termWidth - 44)]);
+    const argTable = createBorderlessTable([28, 20, Math.max(24, termWidth - 54)]);
     normalizedArgumentRows.forEach((row) => argTable.push(row as any));
     console.log("");
     console.log("Options:");

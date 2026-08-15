@@ -1,5 +1,5 @@
 import { readdir, readFile } from "fs/promises";
-import { basename, join } from "path";
+import { basename, join, relative } from "path";
 import { pathToFileURL } from "url";
 import { BaseCommand, COMMAND_META, type CommandMetadata } from "../commands/base/index.js";
 
@@ -171,16 +171,36 @@ function unescapeQuotedString(value: string) {
 }
 
 export async function scanCommandModules(dir: string) {
-  const files = await readdir(dir);
+  const modules: CommandModuleRef[] = [];
 
-  return files
-    .filter(isCommandFile)
-    .sort((a, b) => a.localeCompare(b))
-    .map((fileName) => ({
-      fileName,
-      inferredName: inferCommandName(fileName),
-      modulePath: join(dir, fileName),
-    }));
+  async function visit(currentDir: string) {
+    const entries = await readdir(currentDir, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const modulePath = join(currentDir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name === "base") {
+          continue;
+        }
+        await visit(modulePath);
+        continue;
+      }
+
+      if (!entry.isFile() || !isCommandFile(entry.name)) {
+        continue;
+      }
+
+      const fileName = relative(dir, modulePath);
+      modules.push({
+        fileName,
+        inferredName: inferCommandName(entry.name),
+        modulePath,
+      });
+    }
+  }
+
+  await visit(dir);
+  return modules.sort((a, b) => a.fileName.localeCompare(b.fileName));
 }
 
 export async function scanCommandManifest(dir: string) {

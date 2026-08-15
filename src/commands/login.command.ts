@@ -53,9 +53,9 @@ function createLoginInputService(openBrowser?: OpenBrowser) {
   });
 }
 
-@Command("login", {
+@Command("auth login", {
   description: "Open a browser form, receive login input, and continue in the CLI.",
-  example: "login",
+  example: "auth login",
 })
 export class LoginCommand extends BaseCommand {
   async executeAsync(): Promise<void> {
