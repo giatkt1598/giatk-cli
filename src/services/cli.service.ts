@@ -1,5 +1,6 @@
 import { appConsts } from "@/constants/constants.js";
 import { Helper } from "@/utilities/helper.js";
+import { synchronizeMissingConfigKeys } from "@/utilities/sync-config.js";
 import { useCommand } from "@/utilities/use-command.js";
 import chalk from "chalk";
 import path, { dirname, join } from "path";
@@ -106,10 +107,19 @@ export class CliService {
   async openFileConfig() {
     const projectRoot = Helper.getProjectRoot();
     const configPath = path.join(projectRoot, "appsettings.production.json");
+    const baseConfigPath = path.join(projectRoot, "appsettings.json");
     const isExists = await Helper.fileExists(configPath);
+    const fs = await import("fs/promises");
+
     if (!isExists) {
-      const fs = await import("fs/promises");
-      await fs.copyFile(path.join(projectRoot, "appsettings.json"), configPath);
+      await fs.copyFile(baseConfigPath, configPath);
+    } else {
+      const baseConfig = JSON.parse(await fs.readFile(baseConfigPath, "utf-8")) as Record<string, unknown>;
+      const productionConfig = JSON.parse(await fs.readFile(configPath, "utf-8")) as Record<string, unknown>;
+
+      if (synchronizeMissingConfigKeys(baseConfig, productionConfig)) {
+        await fs.writeFile(configPath, `${JSON.stringify(productionConfig, null, 4)}\n`, "utf-8");
+      }
     }
 
     const { exec } = useCommand({ cwd: projectRoot, silent: false });

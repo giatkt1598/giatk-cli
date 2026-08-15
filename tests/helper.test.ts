@@ -4,6 +4,7 @@ import os from "os";
 import path from "path";
 import { describe, expect, it } from "vitest";
 import { Helper } from "../src/utilities/helper.js";
+import { synchronizeMissingConfigKeys } from "../src/utilities/sync-config.js";
 
 describe("Helper", () => {
   it("getProjectRoot should point to a folder containing package.json", () => {
@@ -44,5 +45,30 @@ describe("Helper", () => {
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }
+  });
+
+  it("synchronizes config keys and preserves existing production values", () => {
+    const production = {
+      existing: "keep me",
+      nested: { configured: true },
+      obsolete: "remove me",
+    };
+    const changed = synchronizeMissingConfigKeys(
+      {
+        existing: "new default",
+        addedString: "not copied",
+        addedNumber: 10,
+        nested: { configured: false, missing: { value: 10 } },
+      },
+      production,
+    );
+
+    expect(changed).toBe(true);
+    expect(production).toEqual({
+      existing: "keep me",
+      addedString: "",
+      addedNumber: null,
+      nested: { configured: true, missing: { value: null } },
+    });
   });
 });

@@ -76,7 +76,7 @@ The CLI loads settings in this order:
 
 If `NODE_ENV` is not set, the default is `production`.
 
-`--config` creates `appsettings.production.json` from `appsettings.json` if missing, then opens it in your OS default editor.
+`--config` creates `appsettings.production.json` from `appsettings.json` if missing, then opens it in your OS default editor. If the production file already exists, new string keys are added with empty values and other types with `null`, without overwriting existing values. Keys absent from `appsettings.json` are removed, including nested keys.
 
 ## Development
 
