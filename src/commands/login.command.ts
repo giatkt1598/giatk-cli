@@ -2,6 +2,22 @@ import { BrowserInputService, type OpenBrowser } from "@/services/browser-input.
 import { parse } from "querystring";
 import { BaseCommand, Command } from "./base/index.js";
 
+@Command("auth login", {
+  description: "Open a browser form, receive login input, and continue in the CLI.",
+  example: "auth login",
+})
+export class LoginCommand extends BaseCommand {
+  async executeAsync(): Promise<void> {
+    console.log("Waiting for browser input. Submit the form or press Ctrl+C to cancel.");
+    const input = await createLoginInputService().collect();
+
+    console.log("Received input from browser:");
+    console.log(JSON.stringify(input, null, 2));
+    console.log(`Processing ${input.name} <${input.email}> in the CLI...`);
+    console.log("Browser input processing completed.");
+  }
+}
+
 interface LoginInput {
   name: string;
   email: string;
@@ -51,20 +67,4 @@ function createLoginInputService(openBrowser?: OpenBrowser) {
     parseSubmission: parseLoginInput,
     openBrowser,
   });
-}
-
-@Command("auth login", {
-  description: "Open a browser form, receive login input, and continue in the CLI.",
-  example: "auth login",
-})
-export class LoginCommand extends BaseCommand {
-  async executeAsync(): Promise<void> {
-    console.log("Waiting for browser input. Submit the form or press Ctrl+C to cancel.");
-    const input = await createLoginInputService().collect();
-
-    console.log("Received input from browser:");
-    console.log(JSON.stringify(input, null, 2));
-    console.log(`Processing ${input.name} <${input.email}> in the CLI...`);
-    console.log("Browser input processing completed.");
-  }
 }
